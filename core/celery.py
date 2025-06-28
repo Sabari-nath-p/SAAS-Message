@@ -1,5 +1,8 @@
 from __future__ import absolute_import
+from dbm import _error
 import os
+
+from pandas import crosstab
 from celery import Celery
 from django.conf import settings
 
@@ -19,15 +22,35 @@ def setup_periodic_tasks(sender, **kwargs):
     
     # Schedule daily analytics at midnight
     sender.add_periodic_task(
-        crontab(hour=0, minute=0),
+        crosstab(hour=0, minute=0),
         generate_daily_analytics.s(),
         name='generate-daily-analytics'
     )
 
 @app.task
 def check_recurring_messages():
-    from messaging.utils import schedule_recurring_messages
-    schedule_recurring_messages()
+    from django.utils import timezone
+    from messaging.models import RecurringMessage
+    
+    now = timezone.now()
+    messages = RecurringMessage.objects.filter(
+        is_active=True,
+        next_send_at__lte=now,
+        is_deleted=False
+    )
+    
+    for message in messages:
+        try:
+            # Process message (send WhatsApp + create payment link)
+            # process_message.delay(message.id)
+            
+            # Update next send time using the model's method
+            message.last_sent_at = now
+            message.next_send_at = message.calculate_next_send()
+            message.save()
+            
+        except Exception as e:
+            _error.delay(message.id, str(e))
 
 @app.task
 def generate_daily_analytics():

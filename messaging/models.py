@@ -1,5 +1,7 @@
 from django.db import models
 from clients.models import Client
+from core.models import SoftDeleteModel
+import templates
 from templates.models import MessageTemplate
 
 class Contact(models.Model):
@@ -18,20 +20,43 @@ class Contact(models.Model):
         return f"{self.name} ({self.phone})"
 
 class RecurringMessage(SoftDeleteModel):
-    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
-    template = models.ForeignKey(MessageTemplate, on_delete=models.CASCADE, blank=True, null=True)
-    custom_title = models.TextField(blank=True, null=True)
-    custom_body = models.TextField(blank=True, null=True)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    interval_days = models.PositiveIntegerField()
-    is_active = models.BooleanField(default=True)
-    next_send_at = models.DateTimeField()
-    last_sent_at = models.DateTimeField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    INTERVAL_CHOICES = [
+        ('minutes', 'Minutes'),
+        ('hours', 'Hours'), 
+        ('days', 'Days'),
+        ('weeks', 'Weeks'),
+    ]
     
-    def __str__(self):
-        return f"{self.contact} - Every {self.interval_days} days"
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    template = models.ForeignKey(MessageTemplate, null=True, blank=True, on_delete=models.CASCADE)
+    
+    # Changed from interval_days to:
+    interval_number = models.PositiveIntegerField(default=1)
+    interval_type = models.CharField(
+        max_length=10, 
+        choices=INTERVAL_CHOICES, 
+        default='days'
+    )
+    
+    next_send_at = models.DateTimeField()
+    last_sent_at = models.DateTimeField(null=True, blank=True)
+    
+    def calculate_next_send(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        mapping = {
+            'minutes': timedelta(minutes=self.interval_number),
+            'hours': timedelta(hours=self.interval_number),
+            'days': timedelta(days=self.interval_number),
+            'weeks': timedelta(weeks=self.interval_number),
+        }
+        return timezone.now() + mapping[self.interval_type]
+    
+    def save(self, *args, **kwargs):
+        if not self.next_send_at:
+            self.next_send_at = self.calculate_next_send()
+        super().save(*args, **kwargs)
 
 class MessageLog(models.Model):
     recurring_message = models.ForeignKey(RecurringMessage, on_delete=models.CASCADE)

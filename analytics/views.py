@@ -1,13 +1,18 @@
+from clients.models import SettlementRequest
+from messaging.models import Contact, RecurringMessage
+from payments.models import Payment
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from analytics.models import ClientAnalytics
-from analytics.serializers import ClientAnalyticsSerializer
-from core.permissions import IsClientAdmin
-from core.pagination import StandardResultsSetPagination
+from .serialzers import ClientAnalyticsSerializer
+from clients.permissions import IsClientAdmin
+from clients.pagination import StandardResultsSetPagination
 from datetime import datetime, timedelta
 from django.db.models import Sum, Count
 from django.utils import timezone
+
+from templates.models import MessageTemplate
 
 class AnalyticsViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]

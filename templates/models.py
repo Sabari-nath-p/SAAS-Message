@@ -1,5 +1,6 @@
 from django.db import models
 from clients.models import Client
+from core.models import SoftDeleteModel
 
 class MessageTemplate(SoftDeleteModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE)

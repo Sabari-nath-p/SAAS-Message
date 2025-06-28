@@ -1,14 +1,16 @@
+from analytics.models import ClientAnalytics
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from payments.models import Payment, PaymentWebhookLog
 from payments.serializers import PaymentSerializer, PaymentWebhookLogSerializer
-from core.permissions import IsClientAdmin
-from core.pagination import StandardResultsSetPagination
+from clients.permissions import IsClientAdmin
+from clients.pagination import StandardResultsSetPagination
 from datetime import datetime, timedelta
 import razorpay
 from django.conf import settings
+from rest_framework.views import APIView
 
 class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PaymentSerializer

@@ -10,8 +10,8 @@ from messaging.serializers import (
     CreateRecurringMessageSerializer,
     UpdateRecurringMessageSerializer
 )
-from core.permissions import IsClientAdmin
-from core.pagination import StandardResultsSetPagination
+from clients.permissions import IsClientAdmin
+from clients.pagination import StandardResultsSetPagination
 from payments.utils import create_payment_link
 from datetime import timedelta
 from django.utils import timezone

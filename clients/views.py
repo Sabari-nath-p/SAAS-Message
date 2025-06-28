@@ -1,3 +1,4 @@
+from datetime import timezone
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -10,8 +11,8 @@ from clients.serializers import (
     CreateClientSerializer,
     UpdateClientSerializer
 )
-from core.permissions import IsSuperAdmin, IsClientAdmin
-from core.pagination import StandardResultsSetPagination
+from .permissions import IsSuperAdmin, IsClientAdmin
+from .pagination import StandardResultsSetPagination
 
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.filter(is_deleted=False)
