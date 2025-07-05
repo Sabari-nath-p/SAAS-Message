@@ -24,5 +24,7 @@ urlpatterns = [
     path('api/payments/', include('payments.urls')),
     path('api/analytics/', include('analytics.urls')),
     path('api/', include('analytics.urls')),
+    path('admin/', admin.site.urls),  # Superuser admin
+    #path('my-admin/', client_admin.urls),  
 
 ]
